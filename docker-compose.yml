@@ -1,0 +1,39 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASS}
+    networks:
+      - backend_network
+
+  mongo:
+    image: mongo:4.4
+    container_name: mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=${MONGO_DB_NAME}
+    volumes:
+      - ./data/db:/data/db
+    networks:
+      - backend_network
+
+  go-consumer:
+    build: ./go
+    container_name: go
+    depends_on:
+      - rabbitmq
+    networks:
+      - backend_network
+    env_file:
+      - ./go/.env
+
+networks:
+  backend_network:
+    driver: bridge
